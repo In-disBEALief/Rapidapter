@@ -2,9 +2,10 @@
 # Installs Rapidapter and creates a Start Menu shortcut that runs hidden as admin.
 
 param(
-    [string]$InstallDir = "$env:ProgramData\Rapidapter",
-    [string]$ScriptName = "Rapidapter.ps1",
-    [string]$IconName   = "rapidapter.ico",
+    [string]$InstallDir  = "$env:ProgramData\Rapidapter",
+    [string]$ScriptName  = "Rapidapter.ps1",
+    [string]$IconName    = "rapidapter.ico",
+    [string]$AssetsDir   = "assets",
     [switch]$DesktopShortcut
 )
 
@@ -31,14 +32,17 @@ Assert-Admin
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $srcScript = Join-Path $here $ScriptName
 $srcIcon   = Join-Path $here $IconName
+$srcAssets = Join-Path $here $AssetsDir
 
 if (-not (Test-Path $srcScript)) { throw "Missing $ScriptName next to installer: $srcScript" }
 if (-not (Test-Path $srcIcon))   { throw "Missing $IconName next to installer: $srcIcon" }
+if (-not (Test-Path $srcAssets)) { throw "Missing assets folder next to installer: $srcAssets" }
 
 # 1) Copy files to stable location
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 Copy-Item -Force $srcScript (Join-Path $InstallDir $ScriptName)
 Copy-Item -Force $srcIcon   (Join-Path $InstallDir $IconName)
+Copy-Item -Recurse -Force $srcAssets (Join-Path $InstallDir $AssetsDir)
 
 $installedScript = Join-Path $InstallDir $ScriptName
 $installedIcon   = Join-Path $InstallDir $IconName
