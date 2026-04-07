@@ -1,31 +1,69 @@
-# Rapidapter - the rapid adapter adapter.  
+# Rapidapter - the rapid adapter adapter.
 
 ![Screenshot of Rapidapter](./screencap.png)
 
-Rapidapter is a lightweight PowerShell-based Windows utility for rapidly switching IPv4 network adapter configurations via a clean GUI. 
+Rapidapter is a lightweight Windows utility for rapidly switching IPv4 network adapter configurations via a unified GUI. Built for those who frequently reconfigure network adapters for different devices and networks.
 
-I made this utility because I often needed to manually change my ethernet adapter settings for various admin tasks, and was frustrated at how many clicks, scrolls, and characters I needed to enter to get to that adapter page. 
+Instead of digging through Settings > Network > Adapter Properties every time, save your common configurations as named presets and apply them in two clicks.
 
-I'm providing it here on GitHub for any interested user -- My version is built with all the quick settings I need out of the box (DHCP, Persistent Systems, Silvus, LEMR, and manual profiles).
+## Download
 
-In potential future iterations I may provide a templating tool to build custom Rapidapter loadouts. 
+**[Get the latest installer from the Releases page](../../releases/latest)**
+
+Download `Rapidapter-Setup-x.x.x.exe`, run it, and you're done.
 
 ## Features
-- One-click IPv4 profile switching
-- Self-elevating (admin-safe)
+
+- Named presets saved to a local JSON file -- add, edit, and remove at any time
+- Optional gateway and DNS per preset
+- One-click DHCP toggle
+- Manual IP entry for one-off configurations
+- Self-elevating -- no need to right-click "Run as Administrator"
 - Dark-mode UI
-- Hotkey-friendly
-- Installer script for Start Menu/Desktop shortcuts
 
-## Installation
-Run the installer script from Powershell as an admin:
+## Usage
+
+Select your network adapter from the dropdown, pick a preset from the list, and click **Apply Preset**. The change takes effect immediately.
+
+To add a preset, click **+ Add** and fill in a name, IP address, and subnet mask. Gateway and DNS are optional.
+
+## Running without the installer
+
+If you are on a locked-down network where running an installer is not possible, you can run the PowerShell script directly:
 
 ```powershell
-.\Install-Rapidapter.ps1
+.\Rapidapter.ps1
 ```
 
-Alternatively, if you want a desktop shortcut created as well, run the installation script with the `-DesktopShortcut` flag enabled. 
+PowerShell 5.1 or later is required (built into Windows 10 and 11). The script will prompt for elevation via UAC automatically.
 
+Presets are saved to `presets.json` in the same directory as the script.
+
+## Building from source
+
+Prerequisites:
 ```powershell
-.\Install-Rapidapter.ps1 -DesktopShortcut
+Install-Module ps2exe -Scope CurrentUser
+# Optional - required to produce the Setup .exe:
+winget install JRSoftware.InnoSetup
 ```
+
+Build:
+```powershell
+.\Build-Rapidapter.ps1 -Version "1.0.0"
+```
+
+Output goes to `dist\` (compiled exe + assets) and `installer\Output\` (setup exe).
+
+## Uninstalling
+
+If you installed via the setup exe, use **Windows Settings > Apps > Installed Apps** and search for Rapidapter.
+
+If you used the PowerShell installer (`Install-Rapidapter.ps1`), run:
+```powershell
+.\Uninstall-Rapidapter.ps1
+```
+
+---
+
+*A Digital Solution from [beal.digital](https://beal.digital)*
