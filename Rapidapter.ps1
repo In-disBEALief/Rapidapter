@@ -118,7 +118,7 @@ Assert-Admin
 # -------- Main Form --------
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Rapidly adapt your adapter with Rapidapter today!"
-$form.Size = New-Object System.Drawing.Size(520, 570)
+$form.Size = New-Object System.Drawing.Size(535, 570)
 $form.StartPosition = "CenterScreen"
 $form.FormBorderStyle = "FixedDialog"
 $form.MaximizeBox = $false
@@ -132,7 +132,7 @@ $mono   = New-Object System.Drawing.Font("Consolas", 11, [System.Drawing.FontSty
 # ---- Header ----
 $headerPanel = New-Object System.Windows.Forms.Panel
 $headerPanel.Location = New-Object System.Drawing.Point(0, 0)
-$headerPanel.Size = New-Object System.Drawing.Size(520, 110)
+$headerPanel.Size = New-Object System.Drawing.Size(540, 110)
 $headerPanel.BackColor = $Theme.Panel
 $form.Controls.Add($headerPanel)
 
@@ -311,7 +311,7 @@ function Add-FieldRow($container, $y, $labelText, $hint = "") {
     $tb.Font = $font
     $tb.BackColor = $Theme.Panel
     $tb.ForeColor = $Theme.Text
-    if ($hint) { $tb.PlaceholderText = $hint }
+    if ($hint) { try { $tb.PlaceholderText = $hint } catch {} }
     $container.Controls.Add($tb)
     return $tb
 }
