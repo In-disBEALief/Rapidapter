@@ -2,7 +2,7 @@
 
 ![Screenshot of Rapidapter](./screencap.png)
 
-Rapidapter is a lightweight Windows utility for rapidly switching IPv4 network adapter configurations via a unified GUI. Built for those who frequently reconfigure network adapters for different devices and networks.
+A lightweight Windows utility for rapidly switching IPv4 network adapter configurations via a unified GUI. Built for those who frequently reconfigure network adapters for different devices and networks.
 
 Instead of digging through Settings > Network > Adapter Properties every time, save your common configurations as named presets and apply them in two clicks.
 
@@ -14,12 +14,11 @@ Download `Rapidapter-Setup-x.x.x.exe`, run it, and you're done.
 
 ## Features
 
-- Named presets saved to a local JSON file -- add, edit, and remove at any time
-- Optional gateway and DNS per preset
-- One-click DHCP toggle
-- Manual IP entry for one-off configurations
+- Preset configurations saved locally -- add, edit, and remove at any time
+- Optional gateway and DNS preset options
+- One-click DHCP 'reset' toggle
+- Manual entry for one-off configurations
 - Self-elevating -- no need to right-click "Run as Administrator"
-- Dark-mode UI
 
 ## Usage
 
