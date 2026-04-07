@@ -1,6 +1,5 @@
 # Rapidapter.ps1
 # IPv4 profile switcher GUI - select an adapter and apply a preset.
-# Run as Administrator.
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -19,19 +18,13 @@ $Theme = @{
     AccentHover = [System.Drawing.Color]::FromArgb(45, 105, 175)
 }
 
-# Ensures the program is run with sufficient privileges to change the adapter settings.
-function Assert-Admin {
-    $id = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $p  = New-Object Security.Principal.WindowsPrincipal($id)
-    if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        [System.Windows.Forms.MessageBox]::Show(
-            "Please run this script as Administrator (required to change IP settings).",
-            "Admin Required",
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Warning
-        ) | Out-Null
-        exit 1
-    }
+# Re-launch the script elevated if not already running as administrator.
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+           ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`""
+    exit
 }
 
 # Convert a subnet mask to CIDR prefix length.
@@ -112,8 +105,6 @@ function Import-Presets {
 function Save-Presets([array]$presets) {
     @{ presets = $presets } | ConvertTo-Json -Depth 4 | Set-Content $script:PresetsPath -Encoding UTF8
 }
-
-Assert-Admin
 
 # -------- Main Form --------
 $form = New-Object System.Windows.Forms.Form
