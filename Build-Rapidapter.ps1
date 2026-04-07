@@ -54,5 +54,24 @@ Write-Host "  Rapidapter.exe"
 Write-Host "  rapidapter.ico"
 Write-Host "  assets\rapidapter_96.png"
 Write-Host "  presets.json"
-Write-Host ""
-Write-Host "Run Install-Rapidapter.ps1 from the dist\ folder to install."
+
+# Compile Inno Setup installer if ISCC is available
+$iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+if (Test-Path $iscc) {
+    Write-Host ""
+    Write-Host "Inno Setup found - compiling installer..."
+    & $iscc /DMyAppVersion=$Version (Join-Path $root "installer\Rapidapter.iss")
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Installer -> installer\Output\Rapidapter-Setup-$Version.exe"
+    } else {
+        Write-Warning "Inno Setup exited with code $LASTEXITCODE"
+    }
+} else {
+    Write-Host ""
+    Write-Host "Inno Setup not found - skipping installer compilation."
+    Write-Host "  To build the installer: choco install innosetup"
+    Write-Host "  Then re-run this script."
+    Write-Host ""
+    Write-Host "To install without the Inno Setup installer:"
+    Write-Host "  Run Install-Rapidapter.ps1 from the dist\ folder."
+}
