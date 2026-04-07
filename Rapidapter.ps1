@@ -1,5 +1,5 @@
 # Rapidapter.ps1
-# IPv4 profile switcher GUI — select an adapter and apply a preset.
+# IPv4 profile switcher GUI - select an adapter and apply a preset.
 # Run as Administrator.
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -214,7 +214,7 @@ function New-Separator($y) {
 }
 
 # ---- DHCP ----
-$btnDHCP = New-Button "DHCP  —  Get IP Automatically" 15 160
+$btnDHCP = New-Button "DHCP - Get IP Automatically" 15 160
 $form.Controls.Add($btnDHCP)
 $form.Controls.Add((New-Separator 206))
 
@@ -289,7 +289,7 @@ function Update-PresetList {
     $listBox.Items.Clear()
     foreach ($p in $script:Presets) {
         $label = $p.name
-        if ($p.ipv4 -and $p.mask) { $label += "  —  $($p.ipv4) / $($p.mask)" }
+        if ($p.ipv4 -and $p.mask) { $label += "  -  $($p.ipv4) / $($p.mask)" }
         if ($p.gw)  { $label += "  GW: $($p.gw)" }
         if ($p.dns) { $label += "  DNS: $($p.dns)" }
         $listBox.Items.Add($label) | Out-Null
@@ -528,7 +528,8 @@ $btnRemove.Add_Click({
     if ($idx -lt 0) { return }
     $name = $script:Presets[$idx].name
     $confirm = [System.Windows.Forms.MessageBox]::Show(
-        "Remove preset `"$name`"?", "Confirm",
+        "Remove preset '$name'?",
+        "Confirm",
         [System.Windows.Forms.MessageBoxButtons]::YesNo,
         [System.Windows.Forms.MessageBoxIcon]::Question
     )
