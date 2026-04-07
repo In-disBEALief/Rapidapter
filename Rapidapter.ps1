@@ -109,7 +109,7 @@ function Save-Presets([array]$presets) {
 # -------- Main Form --------
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Rapidly adapt your adapter with Rapidapter today!"
-$form.Size = New-Object System.Drawing.Size(535, 570)
+$form.Size = New-Object System.Drawing.Size(535, 580)
 $form.StartPosition = "CenterScreen"
 $form.FormBorderStyle = "FixedDialog"
 $form.MaximizeBox = $false
