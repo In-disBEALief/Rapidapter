@@ -1,11 +1,15 @@
 # Install-Rapidapter.ps1
-# Installs Rapidapter and creates a Start Menu shortcut that runs hidden as admin.
+# Installs Rapidapter and creates a Start Menu shortcut.
+# Run from the dist\ folder (after building) for the .exe version,
+# or from the repo root for the .ps1 version.
 
 param(
-    [string]$InstallDir  = "$env:ProgramData\Rapidapter",
-    [string]$ScriptName  = "Rapidapter.ps1",
-    [string]$IconName    = "rapidapter.ico",
-    [string]$AssetsDir   = "assets",
+    [string]$InstallDir     = "$env:ProgramData\Rapidapter",
+    [string]$ExeName        = "Rapidapter.exe",
+    [string]$ScriptName     = "Rapidapter.ps1",
+    [string]$IconName       = "rapidapter.ico",
+    [string]$AssetsDir      = "assets",
+    [string]$PresetsName    = "presets.json",
     [switch]$DesktopShortcut
 )
 
@@ -13,15 +17,13 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Assert-Admin {
-    $isAdmin = ([Security.Principal.WindowsPrincipal] `
-        [Security.Principal.WindowsIdentity]::GetCurrent() `
-    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+               ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if (-not $isAdmin) { throw "Please run this installer as Administrator." }
 }
 
 function Set-ShortcutRunAsAdmin([string]$lnkPath) {
-    # Toggle the "Run as administrator" flag in the .lnk file.
-    # This is a known, widely-used technique: set bit 0x20 at byte 0x15.
+    # Toggle the "Run as administrator" flag in the .lnk binary.
     $bytes = [IO.File]::ReadAllBytes($lnkPath)
     $bytes[0x15] = $bytes[0x15] -bor 0x20
     [IO.File]::WriteAllBytes($lnkPath, $bytes)
@@ -29,38 +31,64 @@ function Set-ShortcutRunAsAdmin([string]$lnkPath) {
 
 Assert-Admin
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here      = Split-Path -Parent $MyInvocation.MyCommand.Path
+$srcExe    = Join-Path $here $ExeName
 $srcScript = Join-Path $here $ScriptName
 $srcIcon   = Join-Path $here $IconName
 $srcAssets = Join-Path $here $AssetsDir
+$srcPresets = Join-Path $here $PresetsName
 
-if (-not (Test-Path $srcScript)) { throw "Missing $ScriptName next to installer: $srcScript" }
+# Determine whether we are installing the compiled .exe or the .ps1 script.
+$useExe = Test-Path $srcExe
+
+if (-not $useExe -and -not (Test-Path $srcScript)) {
+    throw "Neither $ExeName nor $ScriptName found next to the installer: $here"
+}
 if (-not (Test-Path $srcIcon))   { throw "Missing $IconName next to installer: $srcIcon" }
 if (-not (Test-Path $srcAssets)) { throw "Missing assets folder next to installer: $srcAssets" }
 
-# 1) Copy files to stable location
+# 1) Copy files to stable install location
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-Copy-Item -Force $srcScript (Join-Path $InstallDir $ScriptName)
-Copy-Item -Force $srcIcon   (Join-Path $InstallDir $IconName)
+
+if ($useExe) {
+    Copy-Item -Force $srcExe (Join-Path $InstallDir $ExeName)
+} else {
+    Copy-Item -Force $srcScript (Join-Path $InstallDir $ScriptName)
+}
+Copy-Item -Force $srcIcon (Join-Path $InstallDir $IconName)
 Copy-Item -Recurse -Force $srcAssets (Join-Path $InstallDir $AssetsDir)
 
-$installedScript = Join-Path $InstallDir $ScriptName
-$installedIcon   = Join-Path $InstallDir $IconName
+# Copy default presets only if none exist yet (preserve user's saved presets).
+$destPresets = Join-Path $InstallDir $PresetsName
+if ((Test-Path $srcPresets) -and -not (Test-Path $destPresets)) {
+    Copy-Item -Force $srcPresets $destPresets
+}
 
 # 2) Create Start Menu shortcut
 $startMenuDir = Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs"
 $shortcutPath = Join-Path $startMenuDir "Rapidapter.lnk"
-
-$psExe = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
+$installedIcon = Join-Path $InstallDir $IconName
 
 $wsh = New-Object -ComObject WScript.Shell
 $sc  = $wsh.CreateShortcut($shortcutPath)
-$sc.TargetPath = $psExe
-$sc.Arguments  = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$installedScript`""
+
+if ($useExe) {
+    # Point directly at the exe - no powershell.exe wrapper needed.
+    $sc.TargetPath       = Join-Path $InstallDir $ExeName
+    $sc.Arguments        = ""
+    $sc.WindowStyle      = 1  # Normal window
+} else {
+    # Wrap the .ps1 in powershell.exe with a hidden console window.
+    $psExe = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
+    $installedScript = Join-Path $InstallDir $ScriptName
+    $sc.TargetPath       = $psExe
+    $sc.Arguments        = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$installedScript`""
+    $sc.WindowStyle      = 7  # Minimized (hides the console)
+}
+
 $sc.WorkingDirectory = $InstallDir
-$sc.IconLocation = "$installedIcon,0"
-$sc.WindowStyle = 7  # minimized (console should be hidden anyway)
-$sc.Description = "Rapidapter - quick IPv4 profile switcher"
+$sc.IconLocation     = "$installedIcon,0"
+$sc.Description      = "Rapidapter - quick IPv4 profile switcher"
 $sc.Save()
 
 # 3) Mark shortcut "Run as administrator"
@@ -72,6 +100,7 @@ if ($DesktopShortcut) {
     Copy-Item -Force $shortcutPath $desktopPath
 }
 
-Write-Host "Installed Rapidapter to: $InstallDir"
+$installedTarget = if ($useExe) { $ExeName } else { $ScriptName }
+Write-Host "Installed Rapidapter ($installedTarget) to: $InstallDir"
 Write-Host "Start Menu shortcut: $shortcutPath"
 if ($DesktopShortcut) { Write-Host "Desktop shortcut created." }

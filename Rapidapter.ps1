@@ -1,4 +1,4 @@
-# Rapidapter.ps1
+﻿# Rapidapter.ps1
 # IPv4 profile switcher GUI - select an adapter and apply a preset.
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -16,6 +16,16 @@ $Theme = @{
     Accent      = [System.Drawing.Color]::FromArgb(80, 160, 255)
     AccentDark  = [System.Drawing.Color]::FromArgb(30, 80, 140)
     AccentHover = [System.Drawing.Color]::FromArgb(45, 105, 175)
+}
+
+# Resolve the directory containing the running file -- works for both
+# .ps1 (where $PSScriptRoot is reliable) and PS2EXE compiled .exe
+# (where $PSScriptRoot may point to a temp extraction directory).
+$_mainExe = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+$AppDir = if ($_mainExe -notmatch 'powershell(\.exe)?$|pwsh(\.exe)?$') {
+    Split-Path -Parent $_mainExe   # running as compiled exe
+} else {
+    $PSScriptRoot                  # running as .ps1
 }
 
 # Re-launch the script elevated if not already running as administrator.
@@ -93,7 +103,7 @@ function Show-Toast([string]$msg, [string]$title = "Rapidapter") {
 }
 
 # ---- Preset persistence ----
-$script:PresetsPath = Join-Path $PSScriptRoot "presets.json"
+$script:PresetsPath = Join-Path $AppDir "presets.json"
 
 function Import-Presets {
     if (-not (Test-Path $script:PresetsPath)) { return @() }
@@ -132,7 +142,7 @@ $picLogo.Location = New-Object System.Drawing.Point(15, 10)
 $picLogo.Size = New-Object System.Drawing.Size(90, 90)
 $picLogo.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
 $picLogo.BackColor = [System.Drawing.Color]::Transparent
-$logoPath = Join-Path $PSScriptRoot "assets\rapidapter_96.png"
+$logoPath = Join-Path $AppDir "assets\rapidapter_96.png"
 if (Test-Path $logoPath) { $picLogo.Image = [System.Drawing.Image]::FromFile($logoPath) }
 $headerPanel.Controls.Add($picLogo)
 
@@ -546,3 +556,4 @@ Update-PresetList
 
 $form.Add_Shown({ $form.Activate() })
 [void]$form.ShowDialog()
+
